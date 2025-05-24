@@ -1,4 +1,4 @@
-name: Build & Test
+name: Build & Test CI
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build_default:
+    name: Build (Default)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,3 +25,84 @@ jobs:
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
+
+  build_asan:
+    name: Build (ASan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libgtest-dev
+
+      - name: Configure CMake (ASan)
+        run: cmake -S . -B build -GNinja -DENABLE_TESTING=ON -DENABLE_ASAN=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+  build_ubsan:
+    name: Build (UBSan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libgtest-dev
+
+      - name: Configure CMake (UBSan)
+        run: cmake -S . -B build -GNinja -DENABLE_TESTING=ON -DENABLE_UBSAN=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+  build_asan_ubsan:
+    name: Build (ASan + UBSan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libgtest-dev
+
+      - name: Configure CMake (ASan + UBSan)
+        run: cmake -S . -B build -GNinja -DENABLE_TESTING=ON -DENABLE_ASAN=ON -DENABLE_UBSAN=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+  build_tsan:
+    name: Build (TSan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libgtest-dev
+
+      - name: Configure CMake (TSan)
+        run: cmake -S . -B build -GNinja -DENABLE_TESTING=ON -DENABLE_TSAN=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+        # TSan tests might need specific environment variables or options if they are flaky
+        # For example, setting TSAN_OPTIONS:
+        # env:
+        #   TSAN_OPTIONS: "suppressions=my_tsan.supp"
+# End of workflow file
